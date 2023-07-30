@@ -1,1 +1,1 @@
-# StocastiqML
+# StochastiqML
