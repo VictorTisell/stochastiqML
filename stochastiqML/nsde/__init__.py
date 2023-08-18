@@ -1,2 +1,2 @@
-from .neural_sde import NeuralSDE
+from .nsde import NeuralSDE
 

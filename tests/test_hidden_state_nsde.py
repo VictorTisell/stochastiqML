@@ -1,37 +1,35 @@
 import torch
 import time
+import unittest
 
 from stochastiqML.aa_nsde import HiddenStateNSDE
 
-def test_SDE():
-    # Initialize the SDE model
-    batch_size = 256
-    t_size = 20
-    hidden_dim = 32
-    latent_dim = 16
-    expected_shape = (batch_size, t_size, hidden_dim)
-    model = HiddenStateNSDE(hidden_dim=hidden_dim,
-                latent_dim=latent_dim, nlayers=2)
-    
-    # Ensure model is in evaluation mode
-    model.eval()
-    # Create dummy input tensor
-    x = torch.randn(batch_size, hidden_dim)  # Batch of 10 with hidden_dim of 32
-    t = torch.linspace(0, 1, steps = t_size)  # Time tensor
-    # Test the f and g methods
-    drift = model.f(t, x)
-    diffusion = model.g(t, x)
-    assert drift.shape == (batch_size, hidden_dim), f"Expected shape ({batch_size}, {hidden_dim}), but got {drift.shape}"
-    assert diffusion.shape == (batch_size, hidden_dim), f"Expected shape ({batch_size}, {hidden_dim}), but got {diffusion.shape}"
-    
-    # Test the forward method
-    start = time.time()
-    out = model(t, x)
-    elapsed_time = time.time()-start
-    
-    assert out.shape == expected_shape, f"Expected shape ({expected_shape}), but got {out.shape}"
-    assert elapsed_time < 1.5, f"Forward pass took too long: {elapsed_time}"
-    print(f"Forward pass completed in {elapsed_time:.2f} seconds")
-    print("All tests passed!")
+class TestHiddenStateSDE(unittest.TestCase):
+
+    def setUp(self):
+        self.batch_size = 256
+        self.t_size = 20
+        self.hidden_dim = 32
+        self.latent_dim = 16
+        self.model = HiddenStateNSDE(hidden_dim=self.hidden_dim,
+                                     latent_dim=self.latent_dim, nlayers=2)
+        self.model.eval()
+        self.x = torch.randn(self.batch_size, self.hidden_dim)
+        self.t = torch.linspace(0, 1, steps=self.t_size)
+
+    def test_f_g_methods(self):
+        drift = self.model.f(self.t, self.x)
+        diffusion = self.model.g(self.t, self.x)
+        self.assertEqual(drift.shape, (self.batch_size, self.hidden_dim))
+        self.assertEqual(diffusion.shape, (self.batch_size, self.hidden_dim))
+
+    def test_forward_method(self):
+        expected_shape = (self.batch_size, self.t_size, self.hidden_dim)
+        start = time.time()
+        out = self.model(self.t, self.x)
+        elapsed_time = time.time() - start
+        self.assertEqual(out.shape, expected_shape)
+        self.assertTrue(elapsed_time < 1.5)
+
 if __name__ == '__main__':
-    test_SDE()
+    unittest.main()
