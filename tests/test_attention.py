@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from stochastiqML.sde_rnn import SelfAttention
 import unittest
+
+from stochastiqML.aa_nsde import SelfAttention
 
 class TestSelfAttention(unittest.TestCase):
 

@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 import unittest
-from stochastiqML.sde_rnn import AttentionAugmentedSDE, SelfAttention
+from stochastiqML.aa_nsde import AttentionAugmentedNSDE, SelfAttention
 
 class TestAttentionAugmentedSDE(unittest.TestCase):
 
     def setUp(self):
-        self.model = AttentionAugmentedSDE(input_dim=32, hidden_dim=64, latent_dim=128, nlayers=2)
+        self.model = AttentionAugmentedNSDE(input_dim=32, hidden_dim=64, latent_dim=128, nlayers=2)
         self.batch_size = 10
         self.seq_len = 20
         self.input_dim = 32

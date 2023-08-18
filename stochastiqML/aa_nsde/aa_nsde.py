@@ -2,9 +2,9 @@ import torch
 import torchsde
 from typing import Optional
 
-from stochastiqML.sde_rnn.attention import SelfAttention
+from stochastiqML.aa_nsde.attention import SelfAttention
 
-class HiddenState(torch.nn.Module):
+class HiddenStateNSDE(torch.nn.Module):
     def __init__(self, hidden_dim:int,
                  latent_dim:int,
                  nlayers:int,
@@ -50,7 +50,7 @@ class HiddenState(torch.nn.Module):
 '''
 add learnable initial state
 '''
-class AttentionAugmentedSDE(torch.nn.Module):
+class AttentionAugmentedNSDE(torch.nn.Module):
     def __init__(self, input_dim:int, hidden_dim:int,
                  latent_dim:int, nlayers:int,
                  initial_state:Optional[str] = 'zeros',
@@ -67,7 +67,7 @@ class AttentionAugmentedSDE(torch.nn.Module):
                                     self.activation)
                                     for _ in range(nlayers)])
         self.fc_output = torch.nn.Linear(latent_dim, input_dim)
-        self.hidden_state = HiddenState(hidden_dim = hidden_dim,
+        self.hidden_state = HiddenStateNSDE(hidden_dim = hidden_dim,
                                         latent_dim = latent_dim,
                                         nlayers = nlayers,
                                         dropout = dropout)
@@ -105,4 +105,3 @@ if __name__ == '__main__':
                                 nlayers = 2)
     x = torch.randn(input_shape)
     y = model(x)
-    print(y)

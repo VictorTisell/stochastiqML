@@ -1,7 +1,7 @@
 import torch
 import time
 
-from stochastiqML.sde_rnn import HiddenState
+from stochastiqML.aa_nsde import HiddenStateNSDE
 
 def test_SDE():
     # Initialize the SDE model
@@ -10,7 +10,7 @@ def test_SDE():
     hidden_dim = 32
     latent_dim = 16
     expected_shape = (batch_size, t_size, hidden_dim)
-    model = HiddenState(hidden_dim=hidden_dim,
+    model = HiddenStateNSDE(hidden_dim=hidden_dim,
                 latent_dim=latent_dim, nlayers=2)
     
     # Ensure model is in evaluation mode
