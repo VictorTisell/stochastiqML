@@ -9,7 +9,6 @@ def test_SDE():
     t_size = 20
     hidden_dim = 32
     latent_dim = 16
-    input_shape = (batch_size, hidden_dim)
     expected_shape = (batch_size, t_size, hidden_dim)
     model = HiddenState(hidden_dim=hidden_dim,
                 latent_dim=latent_dim, nlayers=2)

@@ -47,7 +47,9 @@ class HiddenState(torch.nn.Module):
         return self.output_activation(x) if self.output_activation else x
     def forward(self, t:torch.tensor, x0:torch.tensor)->torch.tensor:
         return torchsde.sdeint(self, x0, t, method = self.solver).swapaxes(0, 1)
-
+'''
+add learnable initial state
+'''
 class AttentionAugmentedSDE(torch.nn.Module):
     def __init__(self, input_dim:int, hidden_dim:int,
                  latent_dim:int, nlayers:int,
@@ -70,27 +72,37 @@ class AttentionAugmentedSDE(torch.nn.Module):
                                         nlayers = nlayers,
                                         dropout = dropout)
         self.initial_state = initial_state
+        self.hidden_dim = hidden_dim
         assert initial_state in ['zeros', 'random', 'learned']
     def forward(self, x:torch.tensor)->torch.tensor:
         if self.initial_state == 'zeros':
-            x0 = torch.zeros(x.size(0), x.size(2))
+            x0 = torch.zeros(x.size(0), self.hidden_dim)
+        elif self.initial_state == 'random':
+            raise NotImplementedError
+        elif self.initial_state == 'learned':
+            raise NotImplementedError
         context = self.attention(x)
-        hidden_state = self.hidden_state(x0, t = torch.linspace(0, 1, steps = x.size(1)))
+        hidden_state = self.hidden_state(x0 = x0, 
+                                         t = torch.linspace(0, 1, steps = x.size(1)))
         x = torch.cat([context, hidden_state], dim = 2)
         x = self.fc_input(x)
         for fc in self.fc_block:
             x = fc(x)
         x = self.fc_output(x)
         return self.output_activation(x) if self.output_activation else x
+
 if __name__ == '__main__':
-    batch_size = 10
+    batch_size = 100
     t_size = 20
-    hidden_dim = 8
+    hidden_dim = 4
+    input_dim = 10
     latent_dim = 16
-    input_shape = (batch_size, hidden_dim)
-    expected_shape = (batch_size, t_size, latent_dim)
-    x0 = torch.randn(input_shape)
+    input_shape = (batch_size, t_size, input_dim)
     t = torch.linspace(0, 1, steps = t_size)
-    model = HiddenState(hidden_dim=hidden_dim,
-                        latent_dim = latent_dim,
-                        nlayers = 2)
+    model = AttentionAugmentedSDE(input_dim = input_dim,
+                                hidden_dim=hidden_dim,
+                                latent_dim = latent_dim,
+                                nlayers = 2)
+    x = torch.randn(input_shape)
+    y = model(x)
+    print(y)
