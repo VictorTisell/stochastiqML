@@ -99,7 +99,7 @@ if __name__ == '__main__':
     latent_dim = 16
     input_shape = (batch_size, t_size, input_dim)
     t = torch.linspace(0, 1, steps = t_size)
-    model = AttentionAugmentedSDE(input_dim = input_dim,
+    model = AttentionAugmentedNSDE(input_dim = input_dim,
                                 hidden_dim=hidden_dim,
                                 latent_dim = latent_dim,
                                 nlayers = 2)
