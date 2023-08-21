@@ -3,6 +3,7 @@ import torchsde
 from typing import Optional
 
 from stochastiqML.aa_nsde.attention import SelfAttention
+from stochastiqML.aa_nsde.initial_state_encoder import InitialStateEncoder
 
 class HiddenStateNSDE(torch.nn.Module):
     def __init__(self, hidden_dim:int,
@@ -47,9 +48,7 @@ class HiddenStateNSDE(torch.nn.Module):
         return self.output_activation(x) if self.output_activation else x
     def forward(self, t:torch.tensor, x0:torch.tensor)->torch.tensor:
         return torchsde.sdeint(self, x0, t, method = self.solver).swapaxes(0, 1)
-'''
-add learnable initial state
-'''
+
 class AttentionAugmentedNSDE(torch.nn.Module):
     def __init__(self, input_dim:int, hidden_dim:int,
                  latent_dim:int, nlayers:int,
@@ -71,16 +70,40 @@ class AttentionAugmentedNSDE(torch.nn.Module):
                                         latent_dim = latent_dim,
                                         nlayers = nlayers,
                                         dropout = dropout)
-        self.initial_state = initial_state
         self.hidden_dim = hidden_dim
-        assert initial_state in ['zeros', 'random', 'learned']
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
+        assert initial_state in ['zeros', 'random', 'learned', 'conditional']
+        self._initial_state = initial_state
+        self._initial_state_encoder = None
+        if self._initial_state == 'conditional':
+            self._initial_state_encoder = InitialStateEncoder(input_dim,
+                                                        latent_dim,
+                                                        hidden_dim)
+    @property
+    def initial_state(self)->str:
+        return self._initial_state
+    @initial_state.setter
+    def initial_state(self, value:str)->None:
+        self._initial_state = value
+        if self._initial_state == 'conditional' and self._initial_state_encoder is None:
+            self._initial_state_encoder = InitialStateEncoder(self.input_dim,
+                                                              self.latent_dim,
+                                                              self.hidden_dim)
+    def get_initial_state(self, x:torch.tensor)->torch.tensor:
+        if self._initial_state == 'zeros':
+            return torch.zeros(x.size(0), self.hidden_dim, device=x.device)
+        elif self._initial_state == 'random':
+            raise NotImplementedError("Random initial state not implemented yet.")
+        elif self._initial_state == 'learned':
+            raise NotImplementedError("Learned initial state not implemented yet.")
+        elif self._initial_state == 'conditional':
+            mean, logvar =  self._initial_state_encoder(x[:, 0, :])
+            return self._initial_state_encoder.reparameterize(mean, logvar)
+        else:
+            raise ValueError(f"Invalid initial state: {self.initial_state}")
     def forward(self, x:torch.tensor)->torch.tensor:
-        if self.initial_state == 'zeros':
-            x0 = torch.zeros(x.size(0), self.hidden_dim)
-        elif self.initial_state == 'random':
-            raise NotImplementedError
-        elif self.initial_state == 'learned':
-            raise NotImplementedError
+        x0 = self.get_initial_state(x)
         context = self.attention(x)
         hidden_state = self.hidden_state(x0 = x0, 
                                          t = torch.linspace(0, 1, steps = x.size(1)))
@@ -90,7 +113,6 @@ class AttentionAugmentedNSDE(torch.nn.Module):
             x = fc(x)
         x = self.fc_output(x)
         return self.output_activation(x) if self.output_activation else x
-
 if __name__ == '__main__':
     batch_size = 100
     t_size = 20
@@ -102,6 +124,7 @@ if __name__ == '__main__':
     model = AttentionAugmentedNSDE(input_dim = input_dim,
                                 hidden_dim=hidden_dim,
                                 latent_dim = latent_dim,
-                                nlayers = 2)
+                                nlayers = 2,
+                                initial_state = 'conditional')
     x = torch.randn(input_shape)
     y = model(x)

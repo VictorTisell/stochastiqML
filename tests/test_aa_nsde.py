@@ -39,6 +39,10 @@ class TestAttentionAugmentedSDE(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             x = torch.randn(self.batch_size, self.seq_len, self.input_dim)
             self.model(x)
+    def test_hidden_state_initialization_conditional(self):
+        self.model.initial_state = 'conditional'
+        x = torch.randn(self.batch_size, self.seq_len, self.input_dim)
+        self.model(x)
 
     def test_backward_pass(self):
         x = torch.randn(self.batch_size, self.seq_len, self.input_dim)

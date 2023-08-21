@@ -1,5 +1,5 @@
-import torch
 from typing import Optional
+import torch
 
 
 class Swish(torch.nn.Module):
