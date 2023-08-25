@@ -1,5 +1,5 @@
-import torch
 from typing import Optional
+import torch
 
 class Decoder(torch.nn.Module):
     def __init__(self, latent_size:int,

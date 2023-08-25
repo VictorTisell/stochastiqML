@@ -2,9 +2,6 @@ from typing import Optional
 import torch
 
 
-class Swish(torch.nn.Module):
-    def forward(self, x):
-        return x*torch.sigmoid(x)
 class Encoder(torch.nn.Module):
     def __init__(self, input_size:int,
                  hidden_size:int,
@@ -24,7 +21,7 @@ class Encoder(torch.nn.Module):
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         self.relu = torch.nn.ReLU()
         self.fc = torch.nn.Linear(hidden_size, latent_size)
-        self.output_activation = Swish()
+        self.output_activation = torch.nn.ReLU()
     def forward(self, x:torch.tensor)->torch.tensor:
         x = self.embedding(x)
         x = self.encoder(x)
